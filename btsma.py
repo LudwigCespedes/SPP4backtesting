@@ -6,6 +6,7 @@ import yfinance as yf
 import datetime as dt
 import talib
 import matplotlib.pyplot as plt
+from optimize import walk_forward
 
 # %%
 btc= yf.Ticker("btc-USD")
@@ -30,8 +31,9 @@ class BTSMA(Strategy):
         elif crossover(self.sma2, self.sma1):
             self.position.close()
             self.sell( )
-        
+       
 btc_data = btc_data * 10**-6
+""" 
 bt = Backtest(btc_data, BTSMA, cash=10, commission=.01)
 #stats =bt.optimize(n1=range(2, 10,1), n2=range(2, 10,1), 
 #                   maximize= lambda x: x['Return [%]']
@@ -40,9 +42,16 @@ bt = Backtest(btc_data, BTSMA, cash=10, commission=.01)
 stats = bt.run()
 print(stats)
 bt.plot()
+"""
+
+# %%
+lookback_bars = 28*1440
+validation_bars = 16*68
+
+stats = walk_forward(BTSMA,btc_data,100,100,100)
+
 
 
 # %%
-
-
-
+stats
+# %%
