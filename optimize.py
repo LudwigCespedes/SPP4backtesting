@@ -21,31 +21,38 @@ def plot_stats(stats,paranm_to_plot=['Alpha [%]','Win Rate [%]','Kelly Criterion
     #bt=Backtest(aligned_data,strategy,cash = 10,commission = 0.02)
 
 
-def walk_forward(data,strategy,depp=360):
-    #ok
+def walk_forward(data, strategy, depp=360):
     train = data.iloc[:len(data)//4]
-    test =  data.iloc[len(data)//4:int((len(data)//2))]
+    test  = data.iloc[len(data)//4:int((len(data)//2))]
     
-    stats_master =[]
+    stats_master = []
+
+    # Optimización inicial en train
     bt = Backtest(train, strategy, cash=10, commission=.0025)
-    stats=optimize_auto(bt,strategy,maximize='Equity Final [$]')
-    #stats_master.append(stats)
+    stats = optimize_auto(bt, strategy, maximize='Equity Final [$]')
     
+    # Evaluación inicial en test
     bt = Backtest(test, strategy, cash=10, commission=.0025)
     stats = bt.run(**stats._strategy._params)
     stats_master.append(stats)
-    for i in range(len(data)//2,len(data),depp):
-        train = pd.concat([train[len(train)//2:],test]) 
-        test=pd.concat([test[len(test)//2:],data.iloc[i-depp:i+depp]])
+    
+    # Walk-forward loop
+    for i in range(len(data)//2, len(data), depp):
+        train = pd.concat([train[len(train)//2:], test])
+        train = train[~train.index.duplicated(keep="first")].sort_index()
+
+        test = pd.concat([test[len(test)//2:], data.iloc[i-depp:i+depp]])
+        test = test[~test.index.duplicated(keep="first")].sort_index()
 
         bt = Backtest(train, strategy, cash=10, commission=.0025)
-        stats=optimize_auto(bt,strategy,maximize='Equity Final [$]')
-        #stats_master.append(stats)
+        stats = optimize_auto(bt, strategy, maximize='Equity Final [$]')
         
         bt = Backtest(test, strategy, cash=10, commission=.0025)
         stats = bt.run(**stats._strategy._params)
         stats_master.append(stats)
+    
     return stats_master
+
 def optimize_auto(bt: Backtest, StrategyCls, maximize='Sharpe Ratio',
                   constraint = lambda p: getattr(p, 'n1', 2) < getattr(p, 'n2', 3)):
     ranges = getattr(StrategyCls, 'opt_ranges', None)

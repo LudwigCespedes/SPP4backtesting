@@ -12,7 +12,7 @@ import talib
 
 # %%
 btc_data = yf.Ticker('BTC-USD')
-btc = btc_data.history(start=dt.datetime(2025,6,1), end =dt.datetime(2025,7,1),interval= "5m" ).iloc[:, :4]#*10**-6
+#btc = btc_data.history(start=dt.datetime(2025,7,1), end =dt.datetime(2025,8,17),interval= "5m" ).iloc[:, :4]*10**-6
 btc_d1 = btc_data.history(period = "5y",interval= "1d" ).iloc[:, :4]#*10**-6
 
 # %%
@@ -62,7 +62,7 @@ stats = bt.optimize(
     adxperiod = range(5, 21),      # 16 valores
     emafast = range(10, 100, 10),    # 8 valores
     emalow = range(50, 200, 10),   # 15 valores
-    adxpass = range(10, 60, 5),    # 10 valores
+    adxpass = range(10, 80, 5),    # 10 valores
     maximize='Alpha [%]',
     constraint=lambda p: p.macdfast < p.macdslow and p.emafast < p.emalow and p.adxperiod < p.adxpass
 )
