@@ -1,6 +1,7 @@
 from backtesting import Backtest
 import pandas as pd
 import matplotlib.pyplot as plt
+import time
 def plot_stats(stats,paranm_to_plot=['Alpha [%]','Win Rate [%]','Kelly Criterion','Equity Final [$]']):
     #fig, ax = plt.subplots(figsize=(5, 3), layout='constrained')
     stats_df= pd.DataFrame(stats)
@@ -15,7 +16,8 @@ def plot_stats(stats,paranm_to_plot=['Alpha [%]','Win Rate [%]','Kelly Criterion
     
     stats_df.loc[:,paranm_to_plot].plot(kind="bar",subplots=True,figsize=(10,10),grid=True)
     #print(stats_df[:,paranm_to_plot].max())
-
+    stats_df.to_csv(f'data/{time.time()}.csv')
+    plt.savefig(f'data/{time.time()}.png')
     plt.show()
 
     #bt=Backtest(aligned_data,strategy,cash = 10,commission = 0.02)

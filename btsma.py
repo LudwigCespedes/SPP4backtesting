@@ -44,8 +44,3 @@ plot_stats(stats)
 
 
 
-
-
-# %%
-stats
-# %%
