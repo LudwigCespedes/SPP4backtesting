@@ -18,11 +18,13 @@ btc_data
 
 # %%
 class BTSMA(Strategy):
-    n1 = 2
-    n2 = 124
+    n1 = 11
+    n2 = 22
+    
     opt_ranges = {
-        'n1': range(2, 300, 1),
-        'n2': range(2, 300, 1),
+        'n1': range(11, 12, 1),
+        'n2': range(22, 23, 1),
+        'stop': range(1,100,1)
     }
 
     def init(self):
@@ -32,15 +34,21 @@ class BTSMA(Strategy):
     def next(self):
         if crossover(self.sma1, self.sma2):
             self.position.close()
-            self.buy()
+            self.buy(sl=(self.data.Close-self.data.Close*0.2))
         elif crossover(self.sma2, self.sma1):
             self.position.close()
-            self.sell( )
+            self.sell(sl=(self.data.Close+self.data.Close*0.2))
        
 btc_data = btc_data * 10**-6
 
-stats = walk_forward(btc_data,BTSMA)
-plot_stats(stats)
+#stats = walk_forward(btc_data,BTSMA)
+#plot_stats(stats)
+bt = Backtest(btc_data, BTSMA, cash=10, commission=.0025)
+stats = bt.run() 
+#bt.plot()
+print(stats)
+print(stats['Win Rate [%]'])
+
 
 
 
