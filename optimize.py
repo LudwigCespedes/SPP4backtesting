@@ -56,7 +56,7 @@ def walk_forward(data, strategy, depp=360):
     return stats_master
 
 def optimize_auto(bt: Backtest, StrategyCls, maximize='Sharpe Ratio',
-                  constraint = lambda p: getattr(p, 'n1', 2) < getattr(p, 'n2', 3)):
+                  constraint = lambda p: getattr(p, 'grid_buy', 2) < getattr(p, 'grid_profy', 3)):
     ranges = getattr(StrategyCls, 'opt_ranges', None)
     if not ranges:
         raise ValueError("Define 'opt_ranges' en tu Strategy (dict de iterables).")
