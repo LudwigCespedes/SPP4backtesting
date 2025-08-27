@@ -2,7 +2,7 @@
 from backtesting import Backtest, Strategy
 from backtesting.lib import crossover, resample_apply
 import backtesting
-
+from optimize import walk_forward, plot_stats
 import warnings
 warnings.filterwarnings("ignore")
 import yfinance as yf
@@ -24,6 +24,15 @@ class MacdAdxEmaStrategy(Strategy):
     emafast = 9
     emalow =50
     adxpass = 20
+    opt_ranges =  {
+        "macdfast" : range(5, 13),       # 8 valores
+        "macdslow" : range(13, 26),      # 13 valores
+        "macdsignal" : range(5, 13),     # 8 valores
+        "adxperiod" : range(5, 21),      # 16 valores
+        "emafast" : range(10, 100, 10),    # 8 valores
+        "emalow" : range(50, 200, 10),   # 15 valores
+        "adxpass" : range(10, 80, 5)    # 10 valores
+        }
     def init(self):
         self.macd = self.I(talib.MACD, self.data.Close, 
                            fastperiod=self.macdfast, slowperiod=self.macdslow, signalperiod=self.macdsignal)
@@ -53,21 +62,10 @@ class MacdAdxEmaStrategy(Strategy):
 
 
 # %%
-bt = Backtest((btc_d1*10**-6), MacdAdxEmaStrategy, cash=10, commission=.0025)
-
-stats = bt.optimize( 
-    macdfast = range(5, 13),       # 8 valores
-    macdslow = range(13, 26),      # 13 valores
-    macdsignal = range(5, 13),     # 8 valores
-    adxperiod = range(5, 21),      # 16 valores
-    emafast = range(10, 100, 10),    # 8 valores
-    emalow = range(50, 200, 10),   # 15 valores
-    adxpass = range(10, 80, 5),    # 10 valores
-    maximize='Alpha [%]',
-    constraint=lambda p: p.macdfast < p.macdslow and p.emafast < p.emalow and p.adxperiod < p.adxpass
-)
-#stats = bt.run()
-print(stats)
-bt.plot()
+if __name__=="__main__":
+    stats =walk_forward((btc_d1*10**-6),MacdAdxEmaStrategy,
+                        maximize='Alpha [%]',
+                        constraint=lambda p: p.macdfast < p.macdslow and p.emafast < p.emalow and p.adxperiod < p.adxpass)
+    plot_stats(stats)
 
 

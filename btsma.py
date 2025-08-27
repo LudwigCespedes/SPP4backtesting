@@ -22,9 +22,8 @@ class BTSMA(Strategy):
     n2 = 22
     
     opt_ranges = {
-        'n1': range(11, 12, 1),
-        'n2': range(22, 23, 1),
-        'stop': range(1,100,1)
+        'n1': range(2, 200, 1),
+        'n2': range(2, 200, 1)
     }
 
     def init(self):
@@ -41,10 +40,10 @@ class BTSMA(Strategy):
        
 btc_data = btc_data * 10**-6
 
-#stats = walk_forward(btc_data,BTSMA)
-#plot_stats(stats)
-bt = Backtest(btc_data, BTSMA, cash=10, commission=.0025)
-stats = bt.run() 
+stats = walk_forward(btc_data,BTSMA)
+plot_stats(stats)
+#bt = Backtest(btc_data, BTSMA, cash=10, commission=.0025)
+#stats = bt.run() 
 #bt.plot()
 print(stats)
 print(stats['Win Rate [%]'])

@@ -23,18 +23,18 @@ def plot_stats(stats,paranm_to_plot=['Alpha [%]','Win Rate [%]','Kelly Criterion
     #bt=Backtest(aligned_data,strategy,cash = 10,commission = 0.02)
 
 
-def walk_forward(data, strategy, depp=360):
+def walk_forward(data, strategy, depp=365, maximize = 'Alpha [%]',cash=10, commission=.01,constraint = None):
     train = data.iloc[:len(data)//4]
     test  = data.iloc[len(data)//4:int((len(data)//2))]
     
     stats_master = []
 
     # Optimización inicial en train
-    bt = Backtest(train, strategy, cash=10, commission=.0025)
-    stats = optimize_auto(bt, strategy, maximize='Equity Final [$]')
+    bt = Backtest(train, strategy, cash=cash, commission=commission)
+    stats = optimize_auto(bt, strategy, maximize,constraint)
     
     # Evaluación inicial en test
-    bt = Backtest(test, strategy, cash=10, commission=.0025)
+    bt = Backtest(test, strategy, cash=cash, commission=commission)
     stats = bt.run(**stats._strategy._params)
     stats_master.append(stats)
     
@@ -46,17 +46,17 @@ def walk_forward(data, strategy, depp=360):
         test = pd.concat([test[len(test)//2:], data.iloc[i-depp:i+depp]])
         test = test[~test.index.duplicated(keep="first")].sort_index()
 
-        bt = Backtest(train, strategy, cash=10, commission=.0025)
-        stats = optimize_auto(bt, strategy, maximize='Equity Final [$]')
+        bt = Backtest(train, strategy, cash=cash, commission=commission)
+        stats = optimize_auto(bt, strategy, maximize,constraint)
         
-        bt = Backtest(test, strategy, cash=10, commission=.0025)
+        bt = Backtest(test, strategy, cash=cash, commission=commission)
         stats = bt.run(**stats._strategy._params)
         stats_master.append(stats)
     
     return stats_master
 
 def optimize_auto(bt: Backtest, StrategyCls, maximize='Sharpe Ratio',
-                  constraint = lambda p: getattr(p, 'n1', 2) < getattr(p, 'n2', 3)):
+                  constraint=None):
     ranges = getattr(StrategyCls, 'opt_ranges', None)
     if not ranges:
         raise ValueError("Define 'opt_ranges' en tu Strategy (dict de iterables).")
