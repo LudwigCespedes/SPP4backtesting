@@ -1,21 +1,12 @@
-# %%
 from backtesting import Backtest, Strategy
-from backtesting.lib import crossover
+from backtesting.lib import crossover, TrailingStrategy, MultiBacktest
+#from backtesting.test import MultiBacktest
 import backtesting
 import yfinance as yf
 import datetime as dt
 import talib
 import matplotlib.pyplot as plt
 from optimize import walk_forward, plot_stats
-from backtesting.lib import crossover, TrailingStrategy, MultiBacktest
-
-
-# %%
-btc= yf.Ticker("btc-USD")
-btc_data = btc.history(start = dt.datetime(2015,1,1),
-                       end=dt.datetime(2025,8,17), 
-                       interval="1d")
-btc_data
 # %%
 BTC = yf.Ticker("BTC-USD")
 btc = BTC.history(start=dt.datetime(2015, 1, 1),
@@ -55,48 +46,62 @@ aapl = AAPL.history(start=dt.datetime(2015, 1, 1),
                         interval="1d").iloc[:, :]*10**-6
 
 
-# %%
-class BTSMA(Strategy):
-    n1 = 11
-    n2 = 22
-    
-    opt_ranges = {
-        'n1': range(2, 200, 1),
-        'n2': range(2, 200, 1)
-    }
 
+
+
+# %%
+class BTMACD(Strategy):
+    n1=42
+    n2=82
+    signal=2
+    adx_time = 82
+    adx_pass = 2
+    
+    opt_ranges =  {"n1": range(2,100,1),
+                   "n2": range(2,100,1),
+                   "signal": range(2,100,1),
+                   "adx_time" : range(2,100,1),
+                   "adx_pass":range(2,100,1)}
+    
     def init(self):
-        self.sma1 = self.I(talib.SMA, self.data.Close, self.n1)
-        self.sma2 = self.I(talib.SMA, self.data.Close, self.n2)
+        self.macd, self.signal_line, _ = self.I(talib.MACD, self.data.Close, 
+                                                fastperiod=self.n1, 
+                                                slowperiod=self.n2, 
+                                                signalperiod=self.signal)
+        self.adx = self.I(talib.ADX,self.data.High,self.data.Low,self.data.Close,self.adx_time)
 
     def next(self):
-        if crossover(self.sma1, self.sma2):
-            self.position.close()
-            self.buy(sl=(self.data.Close-self.data.Close*0.2))
-        elif crossover(self.sma2, self.sma1):
-            self.position.close()
-            self.sell(sl=(self.data.Close+self.data.Close*0.2))
-       
+        if self.adx> self.adx_pass:
+            if crossover(self.macd, self.signal_line):
+                preice = self.data.Close[-1]
+                self.position.close()
+                self.buy(size=1, sl=preice-preice * 0.2)
+            elif crossover(self.signal_line, self.macd):
+                self.position.close()
+                preice = self.data.Close[-1]
+                self.sell(size=1, sl=preice+ preice * 0.2)
+                
+        else:
+            self.position.close() 
+# %%
 if __name__=="__main__":
-    #btc = yf.Ticker('BTC-USD')
+    """
+    btc = yf.Ticker('BTC-USD')
     #btc = btc.history(period = "15y",interval= "1d" ).iloc[:, :5]*10**-6
-    #btc = btc.history(start=dt.datetime(2025,9,10)-dt.timedelta(days=729), end =dt.datetime(2025,9,10),interval= "4h" ).iloc[:, :]*10**-6
-    """
-    stats =walk_forward((btc*10**-6),MacdRsiAd,
-                        maximize='Alpha [%]',
-                        constraint=lambda p: p.macd_n1 >p.macd_signal)
-    plot_stats(stats)
-    """
-    
-    bt = Backtest(btc,BTSMA,cash=100,commission=0.01)
-    stats=bt.run()
+    #btc = btc.history(start=dt.datetime(2025,9,10)-dt.timedelta(days=), end =dt.datetime(2025,9,10),interval= "1d" ).iloc[:, :]*10**-6
+        
+    bt = Backtest((btc*10**-6),BTMACD,cash=10, commission=.01)
+    stat=bt.run()
+    print(stat)
     bt.plot()
-    print(stats)
-    btm = MultiBacktest([btc,eth,bnb,dot,cake,xau,coin,nvda,aapl],BTSMA,cash=10, commission=.01)
+    stats =walk_forward((btc*10**-6),BTMACD,
+                        maximize='Alpha [%]',
+                        constraint=lambda p: p.n1 < p.n2 and p.signal  < p.n1)
+    plot_stats(stats)
+    
+    """
+    btm = MultiBacktest([btc,eth,bnb,dot,cake,xau,coin,nvda,aapl],BTMACD,cash=10, commission=.01)
     stat=btm.run()
     print(stat)
     
-
-
-
-
+    
