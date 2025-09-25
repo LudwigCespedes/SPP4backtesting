@@ -59,9 +59,9 @@ aapl = AAPL.history(start=dt.datetime(2015, 1, 1),
 
 # %%
 class BTSMA(Strategy):
-    n1 = 11
-    n2 = 22
-    stop = 10
+    n1 = 171
+    n2 = 155
+    stop = 7
     #
     opt_ranges = {
         'n1': range(2, 200, 1),
@@ -81,13 +81,14 @@ class BTSMA(Strategy):
             self.sell(sl=(self.data.Close+self.data.Close*(self.stop/100)))
        
 if __name__=="__main__":
+    
     #btc = yf.Ticker('BTC-USD')
     #btc = btc.history(period = "15y",interval= "1d" ).iloc[:, :5]*10**-6
     #btc = btc.history(start=dt.datetime(2025,9,10)-dt.timedelta(days=729), end =dt.datetime(2025,9,10),interval= "4h" ).iloc[:, :]*10**-6
     backtesting.Pool = multiprocessing.Pool
     stats =walk_forward((btc*10**-6),BTSMA,
                         maximize='Sortino Ratio',
-                        constraint=lambda p: p.n1 >p.n2)
+                        constraint=lambda p: p.n1 <p.n2)
     plot_stats(stats)
     """
     
@@ -100,8 +101,8 @@ if __name__=="__main__":
     print(stats)
     stats_df= pd.DataFrame(stats)
     stats_df.to_csv(f'data/{time.time()}.csv')
-    
     """
+    
 
 
 
