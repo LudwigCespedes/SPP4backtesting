@@ -3,17 +3,16 @@ from backtesting import Backtest, Strategy
 from backtesting.lib import crossover, resample_apply
 import backtesting
 from optimize import walk_forward, plot_stats
-import warnings
-warnings.filterwarnings("ignore")
+import multiprocessing
 import yfinance as yf
 import datetime as dt
 import talib
-
+from backtesting.lib import crossover, TrailingStrategy, MultiBacktest
 
 # %%
-btc_data = yf.Ticker('BTC-USD')
+btc_data = yf.Ticker('btc-usd')
 #btc = btc_data.history(start=dt.datetime(2025,7,1), end =dt.datetime(2025,8,17),interval= "5m" ).iloc[:, :4]*10**-6
-btc_d1 = btc_data.history(period = "5y",interval= "1d" ).iloc[:, :4]#*10**-6
+btc_d1 = btc_data.history(period = "max",interval= "1d" ).iloc[:, :4]#*10**-6
 
 # %%
 class MacdAdxEmaStrategy(Strategy):
@@ -25,13 +24,13 @@ class MacdAdxEmaStrategy(Strategy):
     emalow =50
     adxpass = 20
     opt_ranges =  {
-        "macdfast" : range(5, 13),       # 8 valores
-        "macdslow" : range(13, 26),      # 13 valores
-        "macdsignal" : range(5, 13),     # 8 valores
-        "adxperiod" : range(5, 21),      # 16 valores
+        "macdfast" : range(10, 13),       # 8 valores
+        "macdslow" : range(20, 26),      # 13 valores
+        "macdsignal" : range(11, 13),     # 8 valores
+        "adxperiod" : range(5, 21,2),      # 16 valores
         "emafast" : range(10, 100, 10),    # 8 valores
-        "emalow" : range(50, 200, 10),   # 15 valores
-        "adxpass" : range(10, 80, 5)    # 10 valores
+        "emalow" : range(10, 200, 10),   # 15 valores
+        "adxpass" : range(10, 90, 10)    # 10 valores
         }
     def init(self):
         self.macd = self.I(talib.MACD, self.data.Close, 
@@ -63,6 +62,7 @@ class MacdAdxEmaStrategy(Strategy):
 
 # %%
 if __name__=="__main__":
+    backtesting.Pool = multiprocessing.Pool
     stats =walk_forward((btc_d1*10**-6),MacdAdxEmaStrategy,
                         maximize='Alpha [%]',
                         constraint=lambda p: p.macdfast < p.macdslow and p.emafast < p.emalow and p.adxperiod < p.adxpass)

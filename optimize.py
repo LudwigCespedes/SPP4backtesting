@@ -16,8 +16,8 @@ def plot_stats(stats,paranm_to_plot=['Alpha [%]','Win Rate [%]','Kelly Criterion
     
     stats_df.loc[:,paranm_to_plot].plot(kind="bar",subplots=True,figsize=(10,10),grid=True)
     #print(stats_df[:,paranm_to_plot].max())
-    stats_df.to_csv(f'data/{time.time()}.csv')
-    plt.savefig(f'data/{time.time()}.png')
+    stats_df.to_csv(f'data/{time.ctime()}.csv')
+    plt.savefig(f'data/{time.ctime()}.png')
     plt.show()
 
     #bt=Backtest(aligned_data,strategy,cash = 10,commission = 0.02)

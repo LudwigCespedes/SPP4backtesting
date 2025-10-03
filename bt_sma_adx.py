@@ -1,4 +1,3 @@
-# %%
 from backtesting import Backtest, Strategy
 from backtesting.lib import crossover
 import backtesting
@@ -7,7 +6,7 @@ import datetime as dt
 import talib
 import matplotlib.pyplot as plt
 from optimize import walk_forward, plot_stats
-from backtesting.lib import crossover, TrailingStrategy, MultiBacktest
+from backtesting.lib import crossover, TrailingStrategy, MultiBacktest, resample_apply
 import pandas as pd
 import time
 import multiprocessing
@@ -62,23 +61,45 @@ class BTSMA(Strategy):
     n1 = 11
     n2 = 22
     stop = 2
+    emafast = 50
+    emalow = 20
+    adxpass= 20
+    
     #
     opt_ranges = {
         'n1': range(2, 200, 1),
         'n2': range(2, 200, 1),
-        'stop': range(2, 100, 1)}
+        'stop': range(2, 100, 1),
+        }
 
     def init(self):
         self.sma1 = self.I(talib.SMA, self.data.Close, self.n1)
         self.sma2 = self.I(talib.SMA, self.data.Close, self.n2)
+        self.adx = self.I(talib.ADX, self.data.High, self.data.Low, self.data.Close, timeperiod=self.adxperiod)
+        self.ema1period30mf = resample_apply('7d', talib.EMA,self.data.Close.s,self.emafast)
+        self.ema2period30ml = resample_apply('7d', talib.EMA, self.data.Close,self.emalow)  
 
-    def next(self):
-        if crossover(self.sma1, self.sma2):
+
+        if(self.adx > self.adxpass) and (self.ema1period30mf > self.ema2period30ml):
+                if self.position.is_short:
+                    self.position.close()
+                if crossover(self.sma1, self.sma2):
+                    self.buy((self.data.Close-self.data.Close*(self.stop/100)))
+                elif crossover(self.sma2, self.sma1):
+                    self.position.close()
+
+        elif (self.adx > self.adxpass) and (self.ema1period30mf < self.ema2period30ml):
+                if self.position.is_long:
+                    self.position.close()                
+                if crossover(self.sma2, self.sma1):
+                    self.sell(sl=(self.data.Close+self.data.Close*(self.stop/100)))
+                elif crossover(self.sma1, self.sma2):
+                    self.position.close()
+
+        elif self.adx < self.adxpass:
             self.position.close()
-            self.buy(sl=(self.data.Close-self.data.Close*(self.stop/100)))
-        elif crossover(self.sma2, self.sma1):
-            self.position.close()
-            self.sell(sl=(self.data.Close+self.data.Close*(self.stop/100)))
+
+
        
 if __name__=="__main__":
     """
@@ -103,6 +124,3 @@ if __name__=="__main__":
     stats_df.to_csv(f'data/{time.time()}.csv')
     
     
-
-
-
