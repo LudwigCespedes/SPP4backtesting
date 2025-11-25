@@ -47,20 +47,33 @@ def plot_stats(
     # Crear directorios si no existen
     csv_dir = os.path.join(save_dir, "csv")
     plots_dir = os.path.join(save_dir, "plots")
+    xlsx_dir = os.path.join(save_dir, "xlsx")
     os.makedirs(csv_dir, exist_ok=True)
     os.makedirs(plots_dir, exist_ok=True)
+    os.makedirs(xlsx_dir, exist_ok=True)
     
     # Guardar CSV y PNG con nombres descriptivos
     csv_path = os.path.join(csv_dir, f"{strategy_name}_{timestamp}.csv")
     png_path = os.path.join(plots_dir, f"{strategy_name}_{timestamp}.png")
+    xlsx_path = os.path.join(xlsx_dir, f"{strategy_name}_{timestamp}.xlsx")
     
     stats_df.to_csv(csv_path)
+    
+    # Convertir columnas datetime con timezone a timezone-naive para Excel
+    stats_df_excel = stats_df.copy()
+    for col in stats_df_excel.columns:
+        if pd.api.types.is_datetime64tz_dtype(stats_df_excel[col]):
+            stats_df_excel[col] = stats_df_excel[col].dt.tz_localize(None)
+    
+    stats_df_excel.to_excel(xlsx_path)
+    
     plt.savefig(png_path)
     plt.show()
     
     print(f"\nResultados guardados:")
     print(f"  CSV: {csv_path}")
     print(f"  PNG: {png_path}")
+    print(f"  XLSX: {xlsx_path}")
 
 
 def save_results(
@@ -68,7 +81,8 @@ def save_results(
     strategy_name: str,
     save_dir: str = "results",
     save_html: bool = True,
-    save_csv: bool = True
+    save_csv: bool = True,
+    save_xlsx: bool = True
 ) -> None:
     """
     Guarda resultados de un backtest individual.
