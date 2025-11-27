@@ -7,9 +7,9 @@ Consolida estrategias que usan SMAs como indicador principal.
 from backtesting import Strategy
 from backtesting.lib import crossover
 import talib
+from src.strategies.base_strategies import BaseStrategy
 
-
-class BTSMAStrategy(Strategy):
+class BTSMAStrategy(BaseStrategy):
     """
     Estrategia de cruce de SMAs con stop loss y take profit.
     
@@ -25,10 +25,10 @@ class BTSMAStrategy(Strategy):
     profit = 4  # Porcentaje de take profit
     
     opt_ranges = {
-        'n1': range(2, 200, 1),
-        'n2': range(2, 200, 1),
-        'stop': range(1, 100, 1),
-        'profit': range(1, 100, 1)
+        'n1': range(2, 50, 2),        # Períodos de SMA rápida
+        'n2': range(2, 50, 2),      # Períodos de SMA lenta
+        'stop': range(1, 50, 5),       # Stop loss: 1% a 20%
+        'profit': range(2, 100, 5)      # Take profit: 2% a 30%
     }
     
     def init(self):
@@ -55,7 +55,7 @@ class BTSMAStrategy(Strategy):
             )
 
 
-class SmaAdxStrategy(Strategy):
+class SmaAdxStrategy(BaseStrategy):
     """
     Estrategia SMA + ADX.
     

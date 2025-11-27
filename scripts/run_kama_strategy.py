@@ -22,14 +22,15 @@ import datetime as dt
 def main():
     """Función principal."""
     print("="*60)
-    print("Backtesting: Estrategia KAMA")
+    print("Backtesting: Estrategia KAMA - Walk-Forward Optimization")
     print("="*60)
     
     # Cargar datos
     print("\n1. Cargando datos de BTC-USD...")
     btc_data = load_crypto_data(
         symbol='BTC-USD',
-        period='max',
+        start=dt.datetime(2015, 1, 1),
+        end=dt.datetime(2025, 11, 26),
         interval='1d',
         normalize=True
     )
@@ -46,7 +47,7 @@ def main():
     stats = walk_forward(
         btc_data,
         KAMACrossover,
-        maximize='Sharpe Ratio',
+        maximize='Sortino Ratio',
         constraint=lambda p: (
             p.n1 < p.n2 and 
             p.stop < p.profit
@@ -57,9 +58,22 @@ def main():
     print("\n3. Generando gráficos y guardando resultados...")
     plot_stats(stats, strategy_name="KAMACrossover")
     
+    # Mostrar mejores parámetros
     print("\n" + "="*60)
-    print("Proceso completado!")
+    print("PARÁMETROS OPTIMIZADOS (último período)")
     print("="*60)
+    
+    best_params = stats[-1]._strategy._params
+    print("\nParámetros optimizados:")
+    for key, value in best_params.items():
+        print(f"  {key}: {value}")
+    
+    print("\n" + "="*60)
+    print("Optimización completada!")
+    print("="*60)
+    print("\nPara probar estos parámetros en intervalos de tiempo,")
+    print("ejecuta: python scripts/test_kama_strategy.py")
+    print("(Recuerda actualizar los parámetros en ese script)")
 
 
 if __name__ == "__main__":

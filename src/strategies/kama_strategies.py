@@ -53,15 +53,16 @@ class KAMACrossover(Strategy):
     
     n1 = 11
     n2 = 22
-    stop = 100
-    profit = 100
+    stop = 10
+    profit = 20
     
     opt_ranges = {
-        'n1': range(10, 100, 10),
-        'n2': range(10, 100, 10),
-        'stop': range(10, 100, 10),
-        'profit': range(10, 100, 10)
+        'n1': range(5, 50, 5),      # 9 values: 5, 10, 15, ..., 45
+        'n2': range(10, 100, 10),   # 9 values: 10, 20, 30, ..., 90
+        'stop': range(2, 50, 2),    # 9 values: 5, 10, 15, ..., 45
+        'profit': range(4, 50, 2) # 9 values: 10, 20, 30, ..., 90
     }
+    # Total combinations: 9 × 9 × 9 × 9 = 6,561 (manageable)
 
     def init(self):
         """Inicializa indicadores."""
