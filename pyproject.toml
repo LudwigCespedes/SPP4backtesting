@@ -1,0 +1,9 @@
+[project]
+name = "spp4backtesting"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "ta-lib>=0.6.8",
+]
