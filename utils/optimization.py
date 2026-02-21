@@ -10,18 +10,37 @@ import pandas as pd
 from typing import Callable, Optional, Dict, List, Any
 
 def walk_forward(data:pd.DataFrame,
-                 strategy,maximize:str = 'Sortino Ratio'):
+                 strategy,cash,maximize:str = 'Sortino Ratio'):
     
     stats_master = []
+    
     size_optimization = 1095
-    size_test = size_optimization * 0.35
+    size_test = int(size_optimization * 0.35)
     train = data.iloc[:size_optimization]
     test = data.iloc[size_optimization:size_optimization+size_test]
     df = data.iloc[size_optimization+size_test:]
-    brocks_n = len(df)+1//len(test)+1
-    brocks = [df.iloc[i*brocks_n:(i+1)*brocks_n] for i in range(brock_n) ]
+    brocks = [df.iloc[i:i+size_test] for i in range(size_optimization,len(data),size_test) if i < len(df)]
     
-    pass
+    bt = Backtest(train,strategy=strategy,cash=cash)
+    stats = optimize_auto(bt, strategy, maximize, constraint)
+    
+    bt = Backtest(test, strategy, cash=cash, commission=commission)
+    stats = bt.run(**stats._strategy._params)
+    stats_master.append(stats)
+# Walk-forward loop
+    for i,j in enumerate(brocks):
+    
+        bt = Backtest(i, strategy, cash=cash, commission=commission)
+        stats = optimize_auto(bt, strategy, maximize, constraint)
+        
+        bt = Backtest(j+i, strategy, cash=cash, commission=commission)
+        stats = bt.run(**stats._strategy._params)
+        stats_master.append(stats)
+    
+    return stats_master
+
+        
+    
 
 def _walk_forward(
     data: pd.DataFrame,
@@ -110,6 +129,15 @@ def optimize_auto(
     return bt.optimize(**ranges, maximize=maximize, constraint=constraint)
 
 if __name__== "__main__":
-    import yfinance as yd
-    yf.download("BTC-USD", period='1d')
+    from pathlib import Path
+    import sys
+# Obtener el directorio raíz del proyecto (3 niveles arriba de este archivo)
+    project_root = Path(__file__).parent.parent
+    sys.path.insert(0, str(project_root))
+    print(f"Project root set to: {project_root}")
+    import yfinance as yf
+    from strategies.sma_strategies import BTSMAStrategy
+    df = yf.download("BTC-USD", period='max')
+    #print(df)
+    walk_forward(df,BTSMAStrategy,17)
     
