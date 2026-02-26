@@ -15,7 +15,7 @@ btc = BTC.history(start=START_DATE, end=END_DATE, interval=INTERVAL)
 
 btc.head()
 df = btc
-walk_forward(df,BTSMAStrategy,17,0.01)
+print(walk_forward(df,BTSMAStrategy,17,0.01))
     
 def main():
     print("Hello from spp4backtesting!")

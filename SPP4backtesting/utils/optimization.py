@@ -22,12 +22,12 @@ def walk_forward(data:pd.DataFrame,
     bt = FractionalBacktest(test, strategy, cash=cash, commission=commission)
     stats = bt.run(**stats._strategy._params)
     stats_master.append(stats)
-# Walk-forward loop
+
     for i in range(len(brocks)):
     
         bt = FractionalBacktest(brocks[i], strategy, cash=cash, commission=commission)
         stats = optimize_auto(bt, strategy, maximize, constraint)
-        if i>len(brocks):
+        if i+1<len(brocks):
             bt = FractionalBacktest(brocks[i+1], strategy, cash=cash, commission=commission)
             stats = bt.run(**stats._strategy._params)
             stats_master.append(stats)
