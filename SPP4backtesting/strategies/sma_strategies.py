@@ -15,9 +15,9 @@ class BTSMAStrategy(BaseStrategy):
     
     # Optimization parameter ranges
     opt_ranges = {
-        'n1': range(2, 102, 1),    # Fast SMA period: 2 to 100
-        'n2': range(2,205, 1),    # Slow SMA period: 2 to 200
-        'stop': range(2, 20, 1),   # Stop-loss: 2% to 79%
+        'n1': range(2, 51, 1),    # Fast SMA period: 2 to 100
+        'n2': range(2,51, 1),    # Slow SMA period: 2 to 200
+        'stop': range(2, 80, 1),   # Stop-loss: 2% to 79%
     }
     
     def init(self):

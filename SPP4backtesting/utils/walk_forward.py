@@ -12,7 +12,8 @@ class WalkForward:
         self.commission = commission
         self.maximize = maximize
         self.constraint = constraint
-        self.size_optimization = 1095
+        #5*365
+        self.size_optimization = 3*365
         self.size_test = int(self.size_optimization * 0.35)
         
         self.stats_master = []
@@ -40,22 +41,22 @@ class WalkForward:
     def run_walk_forward(self):
     
     
-        bt = self.FractionalBacktest(self.train,self.strategy,cash=self.cash,commission=self.commission)
+        bt = self.FractionalBacktest(self.train,self.strategy,cash=self.cash,commission=self.commission,finalize_trades=True)
         self.stats_train = self.optimize_auto(bt, self.strategy, self.maximize, self.constraint)
         
-        bt = self.FractionalBacktest(self.test,self.strategy,cash=self.cash,commission=self.commission)
+        bt = self.FractionalBacktest(self.test,self.strategy,cash=self.cash,commission=self.commission,finalize_trades=True)
         self.stats_test = bt.run(**self.stats_train._strategy._params)
         
         self.stats_master.append([self.stats_train,self.stats_test])
 
         for i in range(len(self.walk)):
             
-            bt = self.FractionalBacktest(self.walk[i], self.strategy, cash=self.cash, commission=self.commission)
+            bt = self.FractionalBacktest(self.walk[i], self.strategy, cash=self.cash, commission=self.commission,finalize_trades=True)
             self.stats_train = self.optimize_auto(bt, self.strategy, self.maximize, self.constraint)
             
             if i+1<len(self.walk):
             
-                bt = self.FractionalBacktest(self.walk[i+1], self.strategy, cash=self.cash, commission=self.commission)
+                bt = self.FractionalBacktest(self.walk[i+1], self.strategy, cash=self.cash, commission=self.commission,finalize_trades=True)
                 
                 self.stats_test = bt.run(**self.stats_train._strategy._params)
                 self.stats_master.append([self.stats_train,self.stats_test])
